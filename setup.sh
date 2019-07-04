@@ -33,11 +33,12 @@ function read_not_empty {
 }
 
 function input_data {
-    backup_host=$(read_not_empty "Backup host: ")
-    backup_username=$(read_not_empty "Backup username: ")
-    backup_password=$(read_not_empty "Backup password: ")
-    backup_remote_dir=$(read_not_empty "Backup remote dir: ")
-    backup_filename=$(read_not_empty "Backup filename: ")
+    backup_host=$(read_not_empty "Backup host")
+    backup_username=$(read_not_empty "Backup username")
+    backup_password=$(read_not_empty "Backup password")
+    backup_remote_dir=$(read_not_empty "Backup remote dir")
+    backup_filename=$(read_not_empty "Backup filename")
+    local_dest_dir=$(read_not_emtpy "Local destination")
 
     touch creds.py
     echo "HOST=$backup_host" >> creds.py
@@ -45,6 +46,7 @@ function input_data {
     echo "PASSWORD=$backup_password" >> creds.py
     echo "PATH=$backup_remote_dir" >> creds.py
     echo "FILENAME=$backup_filename" >> creds.py
+    echo "DEST_PATH=$local_dest_dir" >> creds.py
 }
 
 function configure_network {
