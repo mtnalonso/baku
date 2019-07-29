@@ -1,5 +1,6 @@
-import argparse
 from datetime import datetime
+import argparse
+import glob
 import os
 import shutil
 
@@ -32,7 +33,7 @@ def run_cron_task():
     if not os.path.exists(DEST_PATH):
         os.makedirs(DEST_PATH)
 
-    dest_path = '{}daily_{}.sql.gz'.format(DEST_PATH, backup_date)
+    dest_path = '{}daily-{}.sql.gz'.format(DEST_PATH, backup_date)
 
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -74,6 +75,7 @@ def reorder_yearly_backup_files(today):
 def reorder_monthly_backup_files(today):
     current_day_of_month = today.day
     if current_day_of_month == 1:
+        # TODO: check if file already exists
         monthly_filename = 'monthly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(monthly_filename))
         shutil.copy2(
@@ -85,6 +87,7 @@ def reorder_monthly_backup_files(today):
 def reorder_weekly_backup_files(today):
     current_day_of_week = today.isoweekday()
     if current_day_of_week == 1:
+        # TODO: check if file already exists
         weekly_filename = 'weekly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(weekly_filename))
         shutil.copy2(
@@ -94,11 +97,12 @@ def reorder_weekly_backup_files(today):
 
 
 def reorder_daily_backup_files(today):
-    daily_files = os.listdir(DEST_PATH + 'daily*')
-    if len(daily_files) > 14:
+    daily_files = glob.glob(DEST_PATH + 'daily*')
+    while len(daily_files) > 14:
         oldest_backup = min(daily_files, key=os.path.getctime)
-        print('removing {}{}'.format(DEST_PATH, oldest_backup))
-        os.remove(DEST_PATH + oldest_backup)
+        print('removing {}'.format(oldest_backup))
+        os.remove(oldest_backup)
+        daily_files = glob.glob(DEST_PATH + 'daily*')
     return
 
 
@@ -107,6 +111,7 @@ if __name__ == '__main__':
 
     if args.cron:
         run_cron_task()
+        validate_backup_file()
         reorder_backup_files()
     elif args.sync:
         reorder_backup_files()
