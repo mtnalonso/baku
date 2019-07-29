@@ -29,10 +29,10 @@ def run_cron_task():
 
     backup_date = datetime.now().strftime("%Y-%m-%d")
 
-    if not os.path.exists(dest_path):
-        os.makedirs(dest_path)
+    if not os.path.exists(DEST_PATH):
+        os.makedirs(DEST_PATH)
 
-    dest_path = '{}{}_{}'.format(DEST_PATH, backup_date, filename)
+    dest_path = '{}daily_{}.sql.gz'.format(DEST_PATH, backup_date)
 
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -63,7 +63,7 @@ def reorder_backup_files():
 def reorder_yearly_backup_files(today):
     current_day_of_year = today.timetuple().tm_yday
     if current_day_of_year == 1:
-        yearly_filename = 'yearly-{}.sql.gz'.format(today.year)
+        yearly_filename = 'yearly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(yearly_filename))
         shutil.copy2(
             DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + yearly_filename
@@ -74,7 +74,7 @@ def reorder_yearly_backup_files(today):
 def reorder_monthly_backup_files(today):
     current_day_of_month = today.day
     if current_day_of_month == 1:
-        monthly_filename = 'monthly-{}.sql.gz'.format(today.month)
+        monthly_filename = 'monthly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(monthly_filename))
         shutil.copy2(
             DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + monthly_filename
