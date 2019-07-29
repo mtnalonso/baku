@@ -9,7 +9,7 @@ import creds
 
 
 DEST_PATH = '{}/{}'.format(os.getcwd(), creds.DEST_PATH)
-LAST_BACKUP_FILENAME = 'last.tar.gz'
+LAST_BACKUP_FILENAME = 'last.sql.gz'
 
 
 def load_args():
@@ -63,7 +63,7 @@ def reorder_backup_files():
 def reorder_yearly_backup_files(today):
     current_day_of_year = today.timetuple().tm_yday
     if current_day_of_year == 1:
-        yearly_filename = 'yearly-{}.tar.gz'.format(today.year)
+        yearly_filename = 'yearly-{}.sql.gz'.format(today.year)
         print('creating {}'.format(yearly_filename))
         shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, yearly_filename)
     return 
@@ -72,7 +72,7 @@ def reorder_yearly_backup_files(today):
 def reorder_monthly_backup_files(today):
     current_day_of_month = today.day
     if current_day_of_month == 1:
-        monthly_filename = 'monthly-{}.tar.gz'.format(today.month)
+        monthly_filename = 'monthly-{}.sql.gz'.format(today.month)
         print('creating {}'.format(monthly_filename))
         shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, monthly_filename)
     return 
@@ -81,7 +81,7 @@ def reorder_monthly_backup_files(today):
 def reorder_weekly_backup_files(today):
     current_day_of_week = today.isoweekday()
     if current_day_of_week == 1:
-        weekly_filename = 'weekly-{}.tar.gz'.format(str(today.date()))
+        weekly_filename = 'weekly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(weekly_filename))
         shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, weekly_filename)
     return
