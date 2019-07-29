@@ -65,7 +65,9 @@ def reorder_yearly_backup_files(today):
     if current_day_of_year == 1:
         yearly_filename = 'yearly-{}.sql.gz'.format(today.year)
         print('creating {}'.format(yearly_filename))
-        shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, yearly_filename)
+        shutil.copy2(
+            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + yearly_filename
+        )
     return 
 
 
@@ -74,7 +76,9 @@ def reorder_monthly_backup_files(today):
     if current_day_of_month == 1:
         monthly_filename = 'monthly-{}.sql.gz'.format(today.month)
         print('creating {}'.format(monthly_filename))
-        shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, monthly_filename)
+        shutil.copy2(
+            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + monthly_filename
+        )
     return 
 
 
@@ -83,7 +87,9 @@ def reorder_weekly_backup_files(today):
     if current_day_of_week == 1:
         weekly_filename = 'weekly-{}.sql.gz'.format(str(today.date()))
         print('creating {}'.format(weekly_filename))
-        shutil.copy2(DEST_PATH + LAST_BACKUP_FILENAME, weekly_filename)
+        shutil.copy2(
+            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + weekly_filename
+        )
     return
 
 
