@@ -69,4 +69,5 @@ software_installation
 input_data
 configure_network
 
+cp config.py.dist config.py
 
