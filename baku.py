@@ -6,11 +6,19 @@ import shutil
 
 import pysftp
 
-import creds
+import config
 
 
-DEST_PATH = '{}/{}'.format(os.getcwd(), creds.DEST_PATH)
+if config.DESTINATION_FOLDER:
+    BAKU_DEST_PATH = config.DESTINATION_FOLDER
+else:
+    BAKU_DEST_PATH = '{}/backups'.format(os.getcwd())
+
 LAST_BACKUP_FILENAME = 'last.sql.gz'
+
+
+hosts = config.hosts
+backups = config.backups
 
 
 def load_args():
@@ -19,6 +27,53 @@ def load_args():
     parser.add_argument('-f', '--force', action='store_true')
     parser.add_argument('-s', '--sync', action='store_true')
     return parser.parse_args()
+
+
+def new_runner():
+    for backup in backups:
+        source_host = hosts[backup['hostname']]
+        user = source_host['username']
+        password = source_host['password']
+        ip = source_host['ip']
+        # TODO if host has custom port
+
+        get_backup_file(ip, user, password, backup)
+    return
+
+
+def get_backup_file(ip, user, password, backup_file_details):
+    destination_path = '{}/{}'.format(
+            BAKU_DEST_PATH,
+            backup_file_details['destination']
+    )
+    prepare_destination_folder(destination_path)
+
+    backup_date = datetime.now().strftime("%Y-%m-%d")
+    # TODO: remove daily from filename
+    dest_file = '{}daily-{}.sql.gz'.format(destination_path, backup_date)
+
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+
+    with pysftp.Connection(ip, username=user, password=password, cnopts=cnopts) as sftp:
+        with sftp.cd(backup_file_details['location']):
+            print('[*] Downloading {}...'.format(backup_file_details.get('name', '')))
+            sftp.get(backup_file_details['filename'], localpath=dest_file)
+            print('[+] Downloaded {}'.format(backup_file_details.get('name', '')))
+
+    copy_file_as_last_backup(dest_file, destination_path, config.DEFAULT_LAST_FILENAME)
+    return
+
+
+def prepare_destination_folder(destination_path):
+    if not os.path.exists(destination_path):
+        os.makedirs(destination_path)
+    return
+
+
+def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
+    shutil.copy2(file_to_copy, dest_path + default_last_filename)
+    return
 
 
 def run_cron_task():
@@ -116,4 +171,5 @@ if __name__ == '__main__':
     elif args.sync:
         reorder_backup_files()
     elif args.force:
+        new_runner()
         raise NotImplementedError('Forced backup not implemented yet')
