@@ -29,7 +29,7 @@ def load_args():
     return parser.parse_args()
 
 
-def new_runner():
+def run_backups():
     for backup in backups:
         source_host = hosts[backup['hostname']]
         user = source_host['username']
@@ -74,34 +74,6 @@ def prepare_destination_folder(destination_path):
 def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
     shutil.copy2(file_to_copy, dest_path + default_last_filename)
     return
-
-
-def run_cron_task():
-    user = creds.USERNAME
-    password = creds.PASSWORD
-    host = creds.HOST
-    directory = creds.PATH
-    filename = creds.FILENAME
-
-    backup_date = datetime.now().strftime("%Y-%m-%d")
-
-    if not os.path.exists(DEST_PATH):
-        os.makedirs(DEST_PATH)
-
-    dest_path = '{}daily-{}.sql.gz'.format(DEST_PATH, backup_date)
-
-    cnopts = pysftp.CnOpts()
-    cnopts.hostkeys = None
-
-    with pysftp.Connection(host, username=user, password=password, cnopts=cnopts) as sftp:
-        with sftp.cd(directory):
-            print('[*] Downloading {}...'.format(filename))
-            sftp.get(filename, localpath=dest_path)
-            print('[+] Downloaded {}'.format(filename))
-
-    shutil.copy2(dest_path, DEST_PATH + LAST_BACKUP_FILENAME)
-    return
-
 
 def validate_backup_file():
     # TODO: this function will call a validator to check the file integrity
@@ -165,11 +137,10 @@ if __name__ == '__main__':
     args = load_args()
 
     if args.cron:
-        run_cron_task()
+        run_backups()
         validate_backup_file()
         reorder_backup_files()
     elif args.sync:
         reorder_backup_files()
     elif args.force:
-        new_runner()
         raise NotImplementedError('Forced backup not implemented yet')
