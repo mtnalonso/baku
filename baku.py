@@ -17,10 +17,6 @@ else:
 LAST_BACKUP_FILENAME = 'last.sql.gz'
 
 
-hosts = config.hosts
-backups = config.backups
-
-
 def load_args():
     parser = argparse.ArgumentParser(prog='baku.py')
     parser.add_argument('-c', '--cron', action='store_true')
@@ -29,9 +25,9 @@ def load_args():
     return parser.parse_args()
 
 
-def run_backups():
-    for backup in backups:
-        source_host = hosts[backup['hostname']]
+def run_backups(hosts_config, backups_config):
+    for backup in backups_config:
+        source_host = hosts_config[backup['hostname']]
         user = source_host['username']
         password = source_host['password']
         ip = source_host['ip']
@@ -137,7 +133,7 @@ if __name__ == '__main__':
     args = load_args()
 
     if args.cron:
-        run_backups()
+        run_backups(config.hosts, config.backups)
         validate_backup_file()
         reorder_backup_files()
     elif args.sync:
