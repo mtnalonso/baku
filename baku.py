@@ -71,20 +71,22 @@ def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
     shutil.copy2(file_to_copy, dest_path + default_last_filename)
     return
 
-def validate_backup_file():
+def validate_backup_file(backups_config):
     # TODO: this function will call a validator to check the file integrity
     pass
 
 
-def reorder_backup_files():
+def reorder_backup_files(backups_config):
     today = datetime.today()
-    reorder_yearly_backup_files(today)
-    reorder_monthly_backup_files(today)
-    reorder_weekly_backup_files(today)
-    reorder_daily_backup_files(today)
+    for backup_info in backups_config:
+        reorder_yearly_backup_files(today, backup_info)
+        reorder_monthly_backup_files(today, backup_info)
+        reorder_weekly_backup_files(today, backup_info)
+        reorder_daily_backup_files(today, backup_info)
+    return
 
 
-def reorder_yearly_backup_files(today):
+def reorder_yearly_backup_files(today, backup_info):
     current_day_of_year = today.timetuple().tm_yday
     if current_day_of_year == 1:
         yearly_filename = 'yearly-{}.sql.gz'.format(str(today.date()))
@@ -95,7 +97,7 @@ def reorder_yearly_backup_files(today):
     return 
 
 
-def reorder_monthly_backup_files(today):
+def reorder_monthly_backup_files(today, backup_info):
     current_day_of_month = today.day
     if current_day_of_month == 1:
         # TODO: check if file already exists
@@ -107,7 +109,7 @@ def reorder_monthly_backup_files(today):
     return 
 
 
-def reorder_weekly_backup_files(today):
+def reorder_weekly_backup_files(today, backup_info):
     current_day_of_week = today.isoweekday()
     if current_day_of_week == 1:
         # TODO: check if file already exists
@@ -119,13 +121,17 @@ def reorder_weekly_backup_files(today):
     return
 
 
-def reorder_daily_backup_files(today):
-    daily_files = glob.glob(DEST_PATH + 'daily*')
-    while len(daily_files) > 14:
+def reorder_daily_backup_files(today, backup_info):
+    backup_dir = BAKU_DEST_PATH + '/' + backup_info.get('destination')
+    daily_files = glob.glob(backup_dir + 'daily*')
+    default_max_files = config.DEFAULT_DAILY_LIMIT
+    max_daily_files = int(backup_info.get('daily_limit', default_max_files))
+
+    while len(daily_files) > max_daily_files:
         oldest_backup = min(daily_files, key=os.path.getctime)
         print('removing {}'.format(oldest_backup))
         os.remove(oldest_backup)
-        daily_files = glob.glob(DEST_PATH + 'daily*')
+        daily_files = glob.glob(backup_dir + 'daily*')
     return
 
 
@@ -134,9 +140,9 @@ if __name__ == '__main__':
 
     if args.cron:
         run_backups(config.hosts, config.backups)
-        validate_backup_file()
-        reorder_backup_files()
+        validate_backup_file(config.backups)
+        reorder_backup_files(config.backups)
     elif args.sync:
-        reorder_backup_files()
+        reorder_backup_files(config.backups)
     elif args.force:
         raise NotImplementedError('Forced backup not implemented yet')
