@@ -4,5 +4,6 @@
 __pycache__/*
 
 creds.py
+config.py
 
 backups/*
