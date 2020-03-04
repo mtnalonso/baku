@@ -28,34 +28,64 @@ def load_args():
 def run_backups(hosts_config, backups_config):
     for backup in backups_config:
         source_host = hosts_config[backup['hostname']]
-        user = source_host['username']
-        password = source_host['password']
-        ip = source_host['ip']
+        user = source_host.get('username')
+        password = source_host.get('password')
+        ip = source_host.get('ip')
+        private_key = source_host.get('private_key')
+        private_pass = source_host.get('private_key_pass')
         # TODO if host has custom port
 
-        get_backup_file(ip, user, password, backup)
+        get_backup_file(ip, user, password, backup, private_key, private_pass)
     return
 
 
-def get_backup_file(ip, user, password, backup_file_details):
+def get_backup_file(ip, user, password, backup_file_details, private_key=None,
+                    private_pass=None):
     destination_path = '{}/{}'.format(
             BAKU_DEST_PATH,
             backup_file_details['destination']
     )
     prepare_destination_folder(destination_path)
 
+    filename = backup_file_details['filename']
+    remote_location = backup_file_details['location']
+    backup_file_extension = filename.split('.', maxsplit=1)[-1]
     backup_date = datetime.now().strftime("%Y-%m-%d")
     # TODO: remove daily from filename
-    dest_file = '{}daily-{}.sql.gz'.format(destination_path, backup_date)
+
+    dest_file = '{}daily-{}.{}'.format(
+        destination_path, backup_date, backup_file_extension
+    )
 
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    with pysftp.Connection(ip, username=user, password=password, cnopts=cnopts) as sftp:
-        with sftp.cd(backup_file_details['location']):
-            print('[*] Downloading {}...'.format(backup_file_details.get('name', '')))
-            sftp.get(backup_file_details['filename'], localpath=dest_file)
-            print('[+] Downloaded {}'.format(backup_file_details.get('name', '')))
+    
+    if private_key:
+        with pysftp.Connection(
+            ip, username=user, private_key=private_key,
+            private_key_pass=private_pass, cnopts=cnopts
+        ) as sftp:
+            with sftp.cd(remote_location):
+                print('[*] Downloading {}...'.format(
+                    backup_file_details.get('name', '')
+                ))
+                sftp.get(filename, localpath=dest_file)
+                print('[+] Downloaded {}'.format(
+                    backup_file_details.get('name', '')
+                ))
+    else:
+        with pysftp.Connection(
+            ip, username=user, password=password, cnopts=cnopts
+        ) as sftp:
+            with sftp.cd(backup_file_details['location']):
+                print('[*] Downloading {}...'.format(
+                    backup_file_details.get('name', '')
+                ))
+                sftp.get(backup_file_details['filename'], localpath=dest_file)
+                print('[+] Downloaded {}'.format(
+                    backup_file_details.get('name', '')
+                ))
 
     copy_file_as_last_backup(dest_file, destination_path, config.DEFAULT_LAST_FILENAME)
     return
