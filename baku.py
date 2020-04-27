@@ -98,6 +98,13 @@ def prepare_destination_folder(destination_path):
 
 
 def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
+    file_extension = file_to_copy.split('.', 1)[1]
+    default_filename_extension = default_last_filename.split('.', 1)[1]
+
+    if file_extension != default_filename_extension:
+        default_last_filename = default_last_filename.split('.', 1)[0]
+        default_last_filename += file_extension
+
     shutil.copy2(file_to_copy, dest_path + default_last_filename)
     return
 
