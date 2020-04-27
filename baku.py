@@ -103,7 +103,7 @@ def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
 
     if file_extension != default_filename_extension:
         default_last_filename = default_last_filename.split('.', 1)[0]
-        default_last_filename += file_extension
+        default_last_filename += '.' + file_extension
 
     shutil.copy2(file_to_copy, dest_path + default_last_filename)
     return
