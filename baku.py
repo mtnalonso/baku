@@ -14,7 +14,7 @@ if config.DESTINATION_FOLDER:
 else:
     BAKU_DEST_PATH = '{}/backups'.format(os.getcwd())
 
-LAST_BACKUP_FILENAME = 'last.sql.gz'
+LAST_BACKUP_FILENAME = 'last'
 
 
 def load_args():
@@ -99,12 +99,7 @@ def prepare_destination_folder(destination_path):
 
 def copy_file_as_last_backup(file_to_copy, dest_path, default_last_filename):
     file_extension = file_to_copy.split('.', 1)[1]
-    default_filename_extension = default_last_filename.split('.', 1)[1]
-
-    if file_extension != default_filename_extension:
-        default_last_filename = default_last_filename.split('.', 1)[0]
-        default_last_filename += '.' + file_extension
-
+    default_last_filename += '.' + file_extension
     shutil.copy2(file_to_copy, dest_path + default_last_filename)
     return
 
@@ -125,35 +120,56 @@ def reorder_backup_files(backups_config):
 
 def reorder_yearly_backup_files(today, backup_info):
     current_day_of_year = today.timetuple().tm_yday
+
+    file_extension = '.' + backup_info['filename'].split('.', 1)[1]
+    dest_path = BAKU_DEST_PATH + '/' + backup_info['destination']
+
     if current_day_of_year == 1:
-        yearly_filename = 'yearly-{}.sql.gz'.format(str(today.date()))
+        yearly_filename = 'yearly-{}{}'.format(
+            str(today.date()), file_extension
+        )
         print('creating {}'.format(yearly_filename))
         shutil.copy2(
-            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + yearly_filename
+            dest_path + config.DEFAULT_LAST_FILENAME + file_extension,
+            dest_path + yearly_filename
         )
     return 
 
 
 def reorder_monthly_backup_files(today, backup_info):
     current_day_of_month = today.day
+
+    file_extension = '.' + backup_info['filename'].split('.', 1)[1]
+    dest_path = BAKU_DEST_PATH + '/' + backup_info['destination']
+
     if current_day_of_month == 1:
         # TODO: check if file already exists
-        monthly_filename = 'monthly-{}.sql.gz'.format(str(today.date()))
+        monthly_filename = 'monthly-{}{}'.format(
+            str(today.date()), file_extension
+        )
         print('creating {}'.format(monthly_filename))
         shutil.copy2(
-            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + monthly_filename
+            dest_path + config.DEFAULT_LAST_FILENAME + file_extension,
+            dest_path + monthly_filename
         )
     return 
 
 
 def reorder_weekly_backup_files(today, backup_info):
     current_day_of_week = today.isoweekday()
+
+    file_extension = '.' + backup_info['filename'].split('.', 1)[1]
+    dest_path = BAKU_DEST_PATH + '/' + backup_info['destination']
+
     if current_day_of_week == 1:
         # TODO: check if file already exists
-        weekly_filename = 'weekly-{}.sql.gz'.format(str(today.date()))
+        weekly_filename = 'weekly-{}{}'.format(
+            str(today.date()), file_extension
+        )
         print('creating {}'.format(weekly_filename))
         shutil.copy2(
-            DEST_PATH + LAST_BACKUP_FILENAME, DEST_PATH + weekly_filename
+            dest_path + config.DEFAULT_LAST_FILENAME + file_extension,
+            dest_path + weekly_filename
         )
     return
 
@@ -177,8 +193,8 @@ if __name__ == '__main__':
 
     if args.cron:
         run_backups(config.hosts, config.backups)
-        validate_backup_file(config.backups)
-        reorder_backup_files(config.backups)
+        #validate_backup_file(config.backups)
+        #reorder_backup_files(config.backups)
     elif args.sync:
         reorder_backup_files(config.backups)
     elif args.force:
