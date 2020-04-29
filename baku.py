@@ -193,8 +193,8 @@ if __name__ == '__main__':
 
     if args.cron:
         run_backups(config.hosts, config.backups)
-        #validate_backup_file(config.backups)
-        #reorder_backup_files(config.backups)
+        validate_backup_file(config.backups)
+        reorder_backup_files(config.backups)
     elif args.sync:
         reorder_backup_files(config.backups)
     elif args.force:
