@@ -26,10 +26,11 @@ DEFAULT_MONTHLY_LIMIT = 12                  # Default of monthly backups to stor
 
 
 hosts = {
-    'HOSTNAME': {
+    'HOSTNAME-A': {
         'ip': 'X.X.X.X',
         'username': 'BACKUP_USERNAME',
-        'password': 'BACKUP_PASSWORD',
+        'private_key': '/path/to/file',
+        'private_key_pass': 'PRIVATE_KEY_PASSWORD',
     },
 }
 
